@@ -13,7 +13,6 @@ class OrderManager:
         self.capital = [capital]
         self.nb_shares = [0] # number of shares owned
         self.logs = []
-        print('')
 
     def risk_management_decorator(func):
         def wrapper(self, order):

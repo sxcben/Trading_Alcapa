@@ -10,11 +10,12 @@ class OrderManager:
             cls._instance.logs = []  # Initialize the logs list for the first instance
         return cls._instance
     
-    def __init__(self, client, capital):
-        self.capital = [capital]
+    def __init__(self, client):
+        self.client = client
+        self.capital = [client.get_account().cash]
         self.nb_shares = [0] # number of shares owned
         self.logs = []
-        self.client = client
+        
 
     def risk_management_decorator(func):
         def wrapper(self, order):
@@ -53,4 +54,5 @@ class OrderManager:
             # elif order.side == 'ASK':
             #     self.capital.append(self.capital[-1] + order.price*quantity_executed)
             #     self.nb_shares.append(self.nb_shares[-1] - quantity_executed)
+            print('hello')
             self.client.submit_order(order)

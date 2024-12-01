@@ -8,7 +8,7 @@ class Strategy(ABC):
     def __init__(self, symbol, order_manager):
         self.order_manager = order_manager
         self.symbol = symbol
-        self.data = pd.DataFrame(data=[], columns=['Adj Close', 'Volume'])
+        self.data = pd.DataFrame(data=[], columns=['close', 'volume'])
         self.nb_data_points = 0 # the number of data points in our price+volume time series
 
     def update(self, time, price, quantity):
@@ -23,7 +23,7 @@ class Strategy(ABC):
 
 
 class MovingAverageStrategy(Strategy):
-    def __init__(self, symbol, order_manager, short_window = 50, long_window = 200):
+    def __init__(self, symbol, order_manager, short_window = 10, long_window = 50):
         super().__init__(symbol, order_manager)
         self.short_window = short_window
         self.long_window = long_window
@@ -38,15 +38,20 @@ class MovingAverageStrategy(Strategy):
                 self.signal.append(1)
             else:
                 self.signal.append(0)
+            print(self.signal[-2:])
             if self.signal[-1] != prev_signal:
                 if self.signal[-1] < prev_signal: # sell signal
-                    order = MarketOrderRequest(self.symbol, 1, OrderSide.SELL, TimeInForce.DAY) # symbol, quantity, side, execution type
+                    order = MarketOrderRequest(symbol = self.symbol, qty = 1,
+                                               side = OrderSide.SELL, 
+                                               time_in_force = TimeInForce.GTC) # symbol, quantity, side, execution type
 
                 elif self.signal[-1] > prev_signal: # buy signal
-                    order = MarketOrderRequest(self.symbol, 1, OrderSide.BUY, TimeInForce.DAY) # symbol, quantity, side, execution type                
+                    order = MarketOrderRequest(symbol = self.symbol, qty = 1,
+                                               side = OrderSide.BUY, 
+                                               time_in_force = TimeInForce.GTC) # symbol, quantity, side, execution type
+
             else:
                 order = None
-            print(order)
             self.order_manager.send_order(order)
 
     def get_moving_average(self, window):

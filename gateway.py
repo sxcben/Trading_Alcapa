@@ -15,14 +15,14 @@ class Gateway:
             cls._instance.logs = []  # Initialize the logs list for the first instance
         return cls._instance
     
-    def __init__(self, symbol):
+    def __init__(self, symbol, start_date, end_date):
         self.symbol = symbol
         self.subscribers = []  # List of observers
         self.stock = StockHistoricalDataClient(api_key=api_key, secret_key=api_secret)
         request_params = StockBarsRequest(symbol_or_symbols=symbol,
                                           timeframe=TimeFrame.Hour,
-                                          start='2024-11-23',
-                                          end = '2024-11-30')
+                                          start=start_date,
+                                          end = end_date)
         
         symbol_data = self.stock.get_stock_bars(request_params=request_params)
         
@@ -50,6 +50,6 @@ class Gateway:
     
     def live_feed(self):
         for index, row in self.data.iterrows():
-            self.notify(index, float(row['close']), int(row['volume']))
+            self.notify(index[1], float(row['close']), int(row['volume']))
             
             

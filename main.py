@@ -7,12 +7,12 @@ from config import *
 
 if __name__ == '__main__':
     client = TradingClient(api_key, api_secret)
-    gateway = Gateway('AAPL')
-    order_manager = OrderManager(client, 1000000)
+    print(client.get_account())
+    gateway = Gateway('AAPL', start_date=start_date, end_date=end_date)
+    order_manager = OrderManager(client)
     ma_strategy = MovingAverageStrategy('AAPL', order_manager)
-    print(ma_strategy.order_manager)
     gateway.subscribe(ma_strategy)
 
     gateway.live_feed()
-
-    order_manager.export_logs()
+    print('finished')
+    # order_manager.export_logs()

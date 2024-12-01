@@ -1,4 +1,5 @@
 
+import time
 class OrderManager:
     """OrderManager follows the Singleton design pattern"""
     _instance = None
@@ -12,47 +13,47 @@ class OrderManager:
     
     def __init__(self, client):
         self.client = client
-        self.capital = [client.get_account().cash]
+        self.capital = [int(client.get_account().cash)]
         self.nb_shares = [0] # number of shares owned
         self.logs = []
         
 
     def risk_management_decorator(func):
-        def wrapper(self, order):
+        def wrapper(self, order, price):
             if order is None:
-               return func(self, order) 
-            elif order.side == 'BID':
-                if order.price*order.quantity <= self.capital[-1]:
-                    return func(self, order)
+               return func(self, order, price) 
+            
+            elif order.side.value == 'buy':
+                if price*order.qty <= self.capital[-1]:
+                    return func(self, order, price)
                 else:
                     self.log('Order canceled : insufficient capital')
-                    return func(self, None)
-            elif order.side == 'ASK':
-                if order.quantity <= self.nb_shares[-1]:
-                    return func(self, order)
+                    return func(self, None, price)
+            elif order.side.value == 'sell':
+                if order.qty <= self.nb_shares[-1]:
+                    return func(self, order, price)
                 else:
                     self.log('Order canceled : insufficient number of shares')
-                    return func(self, None)
+                    return func(self, None, price)
+                
         return wrapper
 
     @risk_management_decorator
-    def send_order(self, order):
+    def send_order(self, order, price):
+        print(order)
         if order is None:
             self.capital.append(self.capital[-1])
             self.nb_shares.append(self.nb_shares[-1])
         else:
-            # status, quantity_executed = self.matching_engine.try_execute(order)
-            # if status == 0:
-            #     self.log('Order filled : ' + str(order))
-            # elif status == 1:
-            #     self.log('Order partially filled : (quantity filled = ' + str(quantity_executed) + ')' + str(order))
-            # else:
-            #     self.log('Order canceled : ' + str(order))
-            # if order.side == 'BID':
-            #     self.capital.append(self.capital[-1] - order.price*quantity_executed)
-            #     self.nb_shares.append(self.nb_shares[-1] + quantity_executed)
-            # elif order.side == 'ASK':
-            #     self.capital.append(self.capital[-1] + order.price*quantity_executed)
-            #     self.nb_shares.append(self.nb_shares[-1] - quantity_executed)
-            print('hello')
+            print('order send')
             self.client.submit_order(order)
+
+
+            time.sleep(1)  # Poll every second
+            if order.side.value == 'buy':
+                self.capital.append(self.capital[-1] - price*order.qty)
+                self.nb_shares.append(self.nb_shares[-1] + order.qty)
+            elif order.side.value == 'sell':
+                self.capital.append(self.capital[-1] + price*order.qty)
+                self.nb_shares.append(self.nb_shares[-1] - order.qty)
+            

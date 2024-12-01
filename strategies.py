@@ -23,7 +23,7 @@ class Strategy(ABC):
 
 
 class MovingAverageStrategy(Strategy):
-    def __init__(self, symbol, order_manager, short_window = 10, long_window = 50):
+    def __init__(self, symbol, order_manager, short_window = 10, long_window = 20):
         super().__init__(symbol, order_manager)
         self.short_window = short_window
         self.long_window = long_window
@@ -38,21 +38,20 @@ class MovingAverageStrategy(Strategy):
                 self.signal.append(1)
             else:
                 self.signal.append(0)
-            print(self.signal[-2:])
             if self.signal[-1] != prev_signal:
                 if self.signal[-1] < prev_signal: # sell signal
-                    order = MarketOrderRequest(symbol = self.symbol, qty = 1,
+                    order = MarketOrderRequest(symbol = self.symbol, qty = 100,
                                                side = OrderSide.SELL, 
                                                time_in_force = TimeInForce.GTC) # symbol, quantity, side, execution type
 
                 elif self.signal[-1] > prev_signal: # buy signal
-                    order = MarketOrderRequest(symbol = self.symbol, qty = 1,
+                    order = MarketOrderRequest(symbol = self.symbol, qty = 100,
                                                side = OrderSide.BUY, 
                                                time_in_force = TimeInForce.GTC) # symbol, quantity, side, execution type
-
             else:
                 order = None
-            self.order_manager.send_order(order)
+            # print(order)
+            self.order_manager.send_order(order, self.data.iloc[-1]['close'])
 
     def get_moving_average(self, window):
-        return self.data.iloc[self.nb_data_points-window:]['close'].mean()
+        return self.data.iloc[-window:]['close'].mean()

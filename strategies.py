@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 import pandas as pd
-print('hello')
-from order import Order
+# from order import Order
+from alpaca.trading.requests import MarketOrderRequest
+from alpaca.trading.enums import OrderSide, TimeInForce
 
 class Strategy(ABC):
     def __init__(self, symbol, order_manager):
@@ -39,13 +40,14 @@ class MovingAverageStrategy(Strategy):
                 self.signal.append(0)
             if self.signal[-1] != prev_signal:
                 if self.signal[-1] < prev_signal: # sell signal
-                    side = 'ASK'
+                    order = MarketOrderRequest(self.symbol, 1, OrderSide.SELL, TimeInForce.DAY) # symbol, quantity, side, execution type
+
                 elif self.signal[-1] > prev_signal: # buy signal
-                    side = 'BID'
-                order = Order(side, self.data.iloc[-1]['Adj Close'], 1) # quantity = 1 : to improve
+                    order = MarketOrderRequest(self.symbol, 1, OrderSide.BUY, TimeInForce.DAY) # symbol, quantity, side, execution type                
             else:
                 order = None
+            print(order)
             self.order_manager.send_order(order)
 
     def get_moving_average(self, window):
-        return self.data.iloc[self.nb_data_points-window:]['Adj Close'].mean()
+        return self.data.iloc[self.nb_data_points-window:]['close'].mean()

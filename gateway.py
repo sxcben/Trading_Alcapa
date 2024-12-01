@@ -18,21 +18,20 @@ class Gateway:
     def __init__(self, symbol):
         self.symbol = symbol
         self.subscribers = []  # List of observers
-        self.stock_client = StockHistoricalDataClient(api_key=api_key, secret_key=api_secret)
+        self.stock = StockHistoricalDataClient(api_key=api_key, secret_key=api_secret)
         request_params = StockBarsRequest(symbol_or_symbols=symbol,
                                           timeframe=TimeFrame.Hour,
                                           start='2024-11-23',
                                           end = '2024-11-30')
         
-        symbol_data = self.stock_client.get_stock_bars(request_params=request_params)
+        symbol_data = self.stock.get_stock_bars(request_params=request_params)
+        
         if isinstance(symbol_data, dict):  # Si plusieurs symboles sont récupérés, prendre celui qui nous intéresse
             data = symbol_data[self.symbol].df
-        else:  # Sinon, directement accéder au DataFrame
+        else: 
             data = symbol_data.df
-        print(data)
-        # Nettoyer et préparer les données
-        data.dropna(inplace=True)  # Supprimer les lignes avec des valeurs manquantes
-        data.sort_index(inplace=True)  # Trier les données par index (timestamp)
+        data.dropna(inplace=True) 
+        data.sort_index(inplace=True)  
         
         self.data = data
 
@@ -51,6 +50,6 @@ class Gateway:
     
     def live_feed(self):
         for index, row in self.data.iterrows():
-            self.notify(index, float(row['Adj Close']), int(row['Volume']))
+            self.notify(index, float(row['close']), int(row['volume']))
             
             
